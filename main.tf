@@ -32,20 +32,22 @@ resource "aws_security_group" "main" {
 }
 
 resource "aws_docdb_cluster_parameter_group" "main" {
-  family      = "docdb5.0"
+  family      = "docdb4.0"
   name        = "${var.name}-${var.env}"
   description = "${var.name}-${var.env}"
   tags        = merge(var.tags, { Name = "${var.name}-${var.env}-pg" })
 }
 
-resource "aws_docdb_cluster" "docdb" {
-  cluster_identifier      = "${var.name}-${var.env}"
-  engine                  = "docdb"
-  master_username         = "foo"
-  master_password         = "mustbeeightchars"
-  backup_retention_period = 5
-  preferred_backup_window = "07:00-09:00"
-  skip_final_snapshot     = true
+
+resource "aws_docdb_cluster" "main" {
+  cluster_identifier              = "${var.name}-${var.env}"
+  engine                          = "docdb"
+  engine_version                  = var.engine_version
+  master_username                 = data.aws_ssm_parameter.db_user.value
+  master_password                 = data.aws_ssm_parameter.db_pass.value
+  backup_retention_period         = 5
+  preferred_backup_window         = "07:00-09:00"
+  skip_final_snapshot             = true
   db_subnet_group_name            = aws_docdb_subnet_group.main.name
   db_cluster_parameter_group_name = aws_docdb_cluster_parameter_group.main.name
   storage_encrypted               = true
